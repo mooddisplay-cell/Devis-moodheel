@@ -42,8 +42,15 @@ Après l'écriture
 - Relire la facture : le montant payé et le statut doivent correspondre. Communiquer la référence du règlement, le reste à payer et le lien direct DOLIBARR_URL/compta/facture/card.php?id={id}.
 - Erreur de saisie : vous ne pouvez ni supprimer ni modifier le règlement. Dites-le au gérant, qui corrige dans Dolibarr.
 
-Technique (à confirmer au premier règlement réel, sans test préalable sur une vraie facture)
-- POST /invoices/{id}/payments avec datepaye (timestamp), paymentid (identifiant du mode de paiement), accountid (compte bancaire), closepaidinvoices "yes" si le règlement solde la facture. Ne jamais deviner un identifiant : le lire par l'API (dictionnaire des modes de paiement, liste des comptes bancaires).
+Technique (validée le 26/11/2026 sur les factures F2610-036, F2610-034 et F2610-031)
+- Utiliser POST /invoices/paymentsdistributed avec : arrayofamounts {"<id facture>": {"amount": montant}}, datepaye (timestamp à midi UTC pour éviter un décalage de jour), paymentid (VIR = 2, CHQ = 7 ; à relire dans /setup/dictionary/payment_types), accountid, closepaidinvoices, num_payment (vide si inconnu), comment.
+- Envoyer le montant SEUL dans arrayofamounts : ajouter multicurrency_amount provoque une erreur 400 ("Payment in both currency").
+- NE JAMAIS utiliser POST /invoices/{id}/payments : il n'accepte aucun montant et encaisse TOUJOURS la totalité du reste à payer (erreur vécue : 811 580 DA enregistrés au lieu de 405 790 DA ; le gérant a dû supprimer le règlement).
+- closepaidinvoices "yes" uniquement si le règlement solde exactement la facture (elle passe alors en statut 2, payée) ; sinon "no".
+- Compte bancaire : l'API refuse la lecture des comptes (/bankaccounts, 403). L'identifiant est donné par le gérant. Compte SGA : id 4 (indiqué par le gérant le 26/11/2026).
+- Date : par défaut la date de valeur du relevé bancaire, sauf indication contraire du gérant.
+- Un seul règlement à la fois : relire la facture et ses règlements (réglé, reste, statut) après chaque écriture et s'arrêter à la première anomalie.
+- Erreur 503 : transitoire. Relire GET /invoices/{id}/payments pour vérifier que rien n'a été écrit, puis réessayer une seule fois. Ne jamais renvoyer à l'aveugle.
 
 ## Méthode de chiffrage
 1. Analysez les images et le brief : ne retenez QUE les éléments visibles ou demandés. Un poste absent n'est jamais facturé. N'ajoutez aucun poste pour remplir.
