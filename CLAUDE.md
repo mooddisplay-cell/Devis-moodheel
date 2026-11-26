@@ -47,7 +47,7 @@ Technique (validée le 26/11/2026 sur les factures F2610-036, F2610-034 et F2610
 - Envoyer le montant SEUL dans arrayofamounts : ajouter multicurrency_amount provoque une erreur 400 ("Payment in both currency").
 - NE JAMAIS utiliser POST /invoices/{id}/payments : il n'accepte aucun montant et encaisse TOUJOURS la totalité du reste à payer (erreur vécue : 811 580 DA enregistrés au lieu de 405 790 DA ; le gérant a dû supprimer le règlement).
 - closepaidinvoices "yes" uniquement si le règlement solde exactement la facture (elle passe alors en statut 2, payée) ; sinon "no".
-- Compte bancaire : l'API refuse la lecture des comptes (/bankaccounts, 403). L'identifiant est donné par le gérant. Compte SGA : id 4 (indiqué par le gérant le 26/11/2026).
+- Compte bancaire : l'API refuse la lecture des comptes (/bankaccounts, 403). L'identifiant est donné par le gérant. Compte SGA : id 4 (indiqué puis confirmé par le gérant le 26/11/2026 ; règlements vérifiés dans ce compte). Dans l'interface Dolibarr, le tableau des écritures du compte doit être trié par date ou par identifiant décroissant, sinon les dernières saisies paraissent absentes.
 - Date : par défaut la date de valeur du relevé bancaire, sauf indication contraire du gérant.
 - Un seul règlement à la fois : relire la facture et ses règlements (réglé, reste, statut) après chaque écriture et s'arrêter à la première anomalie.
 - Erreur 503 : transitoire. Relire GET /invoices/{id}/payments pour vérifier que rien n'a été écrit, puis réessayer une seule fois. Ne jamais renvoyer à l'aveugle.
